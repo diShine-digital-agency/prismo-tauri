@@ -206,14 +206,6 @@ The CLI version remains the primary tool for USB-based on-site audits. Prismo Ta
 
 ---
 
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
-Copyright (c) 2026 [diShine Digital Agency](https://dishine.it)
-
----
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
@@ -221,6 +213,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 ## Security
 
 See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting.
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+Copyright (c) 2026 [diShine Digital Agency](https://dishine.it)
 
 ## Changelog
 
