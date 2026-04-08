@@ -6,18 +6,17 @@
 
 Prismo Tauri transforms the [Prismo](https://github.com/diShine-digital-agency/prismo) CLI toolkit by diShine into a cross-platform desktop application built with [Tauri v2](https://tauri.app), React, and TypeScript. It provides a visual interface for running audits, viewing reports, exporting branded documents, and managing client profiles.
 
+<p align="center">
+  <img src="assets/branding/prismoTauri_04_report_viewer_close.webp" alt="report viewer" width="49%">
+  <img src="assets/branding/prismoTauri_05_export_center_close.webp" alt="Export center" width="49%">
+</p>
+
 Built by [diShine Digital Agency](https://dishine.it).
 
 > 📖 **New here?** Start with the [Complete User Guide](docs/GUIDE.md) — it walks you through everything step by step, no technical knowledge required.
 
 <p align="center">
-  <img src="assets/branding/prismoTauri_02_run_audit_close.webp" alt="Run audit" width="49%">
-  <img src="assets/branding/prismoTauri_05_export_center_close.webp" alt="Export center" width="49%">
-</p>
-
-<p align="center">
-  <img src="assets/branding/prismoTauri_04_report_viewer_close.webp" alt="report viewer" width="49%">
-  <img src="assets/branding/prismoTauri_01_dashboard_anchor.webp" alt="Dashboard anchor" width="49%">
+  <img src="assets/branding/prismoTauri_02_run_audit_close.webp" alt="Run audit" width="65%">
 </p>
 
 ---
