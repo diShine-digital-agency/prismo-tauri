@@ -1,16 +1,14 @@
-# Prismo Tauri
+# Prismo Tauri, A professional desktop GUI for the Prismo AI Consulting Toolkit.
 
-**A professional desktop GUI for the Prismo AI Consulting Toolkit.**
+<p align="center">
+  <img src="assets/branding/prismoTauri_01_dashboard_close.webp" alt="Prismo Tauri Dashboard dashboard" width="65%">
+</p>
 
 Prismo Tauri transforms the [Prismo](https://github.com/diShine-digital-agency/prismo) CLI toolkit by diShine into a cross-platform desktop application built with [Tauri v2](https://tauri.app), React, and TypeScript. It provides a visual interface for running audits, viewing reports, exporting branded documents, and managing client profiles.
 
 Built by [diShine Digital Agency](https://dishine.it).
 
 > 📖 **New here?** Start with the [Complete User Guide](docs/GUIDE.md) — it walks you through everything step by step, no technical knowledge required.
-
-<p align="center">
-  <img src="assets/branding/prismoTauri_01_dashboard_close.webp" alt="Prismo Tauri Dashboard dashboard" width="100%">
-</p>
 
 <p align="center">
   <img src="assets/branding/prismoTauri_02_run_audit_close.webp" alt="Run audit" width="49%">
