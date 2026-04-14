@@ -25,3 +25,4 @@ Thumbs.db
 
 # Application config (contains API keys)
 prismo.config.json
+dist/
