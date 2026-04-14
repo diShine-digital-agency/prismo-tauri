@@ -110,6 +110,17 @@ export default function AuditRunner() {
 
   const handleRunAudit = async () => {
     if (!selectedAudit) return;
+    // Validate URL when one is required
+    if (needsUrl && targetUrl.trim()) {
+      try {
+        // Allow bare domains (e.g. "example.com") by prepending https://
+        const urlToValidate = /^https?:\/\//i.test(targetUrl) ? targetUrl : `https://${targetUrl}`;
+        new URL(urlToValidate);
+      } catch {
+        setOutput("❌ Invalid URL. Please enter a valid domain or URL (e.g. example.com or https://example.com).\n");
+        return;
+      }
+    }
     setIsRunning(true);
     setOutput("Starting audit…\n\nConnecting to AI engine…\n");
 

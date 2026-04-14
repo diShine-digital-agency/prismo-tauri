@@ -1,7 +1,6 @@
 import { memo } from "react";
 import type { Page } from "../App";
-
-const APP_VERSION = "1.1.0";
+import { APP_VERSION } from "../constants";
 
 const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },

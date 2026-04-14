@@ -1,4 +1,5 @@
 import type { Page } from "../App";
+import { APP_VERSION } from "../constants";
 
 interface DashboardProps {
   onNavigate: (page: Page) => void;
@@ -117,7 +118,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <div className="ml-auto">
               <p className="text-xs text-gray-500">Version</p>
-              <p className="text-sm text-gray-300 font-mono">1.1.0</p>
+              <p className="text-sm text-gray-300 font-mono">{APP_VERSION}</p>
             </div>
           </div>
         </div>

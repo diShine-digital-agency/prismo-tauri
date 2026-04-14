@@ -257,6 +257,7 @@ export default function ClientManager() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setEditingClient({ ...client })}
+                  aria-label={`Edit ${client.name}`}
                   className="text-sm text-gray-400 hover:text-purple-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-800"
                 >
                   Edit
@@ -265,12 +266,14 @@ export default function ClientManager() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleDelete(client.domain)}
+                      aria-label={`Confirm delete ${client.name}`}
                       className="text-sm text-red-400 hover:text-red-300 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-900/30"
                     >
                       Confirm
                     </button>
                     <button
                       onClick={() => setDeleteConfirm(null)}
+                      aria-label="Cancel delete"
                       className="text-sm text-gray-400 hover:text-gray-200 transition-colors px-2 py-1.5 rounded-lg hover:bg-gray-800"
                     >
                       Cancel
@@ -279,6 +282,7 @@ export default function ClientManager() {
                 ) : (
                   <button
                     onClick={() => setDeleteConfirm(client.domain)}
+                    aria-label={`Delete ${client.name}`}
                     className="text-sm text-gray-400 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-800"
                   >
                     Delete

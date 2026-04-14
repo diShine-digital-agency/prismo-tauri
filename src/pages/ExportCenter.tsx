@@ -1,4 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+
+interface PrismoConfig {
+  branding: {
+    agency: string;
+    website: string;
+  };
+  [key: string]: unknown;
+}
 
 const exportFormats = [
   {
@@ -45,6 +54,27 @@ const exportFormats = [
 
 export default function ExportCenter() {
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
+  const [agencyName, setAgencyName] = useState("diShine Digital Agency");
+  const [agencyWebsite, setAgencyWebsite] = useState("dishine.it");
+
+  // Load branding from config
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const config = await invoke<PrismoConfig>("get_config");
+        if (cancelled) return;
+        if (config.branding?.agency) setAgencyName(config.branding.agency);
+        if (config.branding?.website) {
+          // Strip protocol for footer display
+          setAgencyWebsite(config.branding.website.replace(/^https?:\/\//, ""));
+        }
+      } catch {
+        // Use defaults
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -142,7 +172,7 @@ npx md-to-pdf toolkit/reports/your-report.md \\
             <p><span className="font-medium text-gray-600">Audit:</span> Website Performance</p>
           </div>
           <div className="border-t border-gray-200 mt-4 pt-3 flex items-center justify-between text-xs text-gray-400">
-            <span>Powered by Prismo | diShine Digital Agency | dishine.it</span>
+            <span>Powered by Prismo | {agencyName} | {agencyWebsite}</span>
             <span>Page 1 of 3</span>
           </div>
         </div>

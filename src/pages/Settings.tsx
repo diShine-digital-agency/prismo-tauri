@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { APP_VERSION } from "../constants";
 
 interface PrismoConfig {
   version: string;
@@ -30,6 +31,14 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up save confirmation timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
 
   // Load saved config on mount
   useEffect(() => {
@@ -60,7 +69,7 @@ export default function Settings() {
       setSaveError(null);
       await invoke("save_config", {
         config: {
-          version: "1.1.0",
+          version: APP_VERSION,
           language,
           default_report_format: "markdown",
           theme,
@@ -84,8 +93,8 @@ export default function Settings() {
         localStorage.removeItem("prismo_api_key");
       }
       setSaved(true);
-      const timer = setTimeout(() => setSaved(false), 2000);
-      return () => clearTimeout(timer);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => setSaved(false), 2000);
     } catch (e: unknown) {
       setSaveError(`Failed to save settings: ${e instanceof Error ? e.message : String(e)}`);
     }

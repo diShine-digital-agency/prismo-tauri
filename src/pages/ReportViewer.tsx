@@ -30,11 +30,48 @@ function markdownToPlainText(md: string): string {
 }
 
 /**
+ * Escape HTML special characters to prevent XSS when embedding
+ * user-provided text into an HTML template.
+ */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * Convert Markdown to basic HTML for export.
- * This produces a more faithful rendering than raw escaping.
+ * All user text is escaped first, then Markdown syntax is converted to
+ * safe HTML elements.  Tables are converted to proper <table> elements.
  */
 function markdownToHtml(md: string): string {
-  let html = md
+  // 1. Escape HTML entities in the raw Markdown first to prevent XSS
+  let html = escapeHtml(md);
+
+  // 2. Convert Markdown tables before other transforms
+  //    Match table blocks: header row, separator row, data rows
+  html = html.replace(
+    /^(\|.+\|)\n(\|[-:| ]+\|)\n((?:\|.+\|\n?)+)/gm,
+    (_match, headerLine: string, _sep: string, bodyBlock: string) => {
+      const headers = headerLine.split("|").map((c: string) => c.trim()).filter(Boolean);
+      const headerHtml = headers.map((h: string) => `<th>${h}</th>`).join("");
+
+      const rows = bodyBlock.trim().split("\n");
+      const bodyHtml = rows
+        .map((row: string) => {
+          const cells = row.split("|").map((c: string) => c.trim()).filter(Boolean);
+          return `<tr>${cells.map((c: string) => `<td>${c}</td>`).join("")}</tr>`;
+        })
+        .join("\n");
+
+      return `<table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+    }
+  );
+
+  html = html
     // Headings
     .replace(/^######\s+(.*)/gm, "<h6>$1</h6>")
     .replace(/^#####\s+(.*)/gm, "<h5>$1</h5>")
@@ -47,16 +84,24 @@ function markdownToHtml(md: string): string {
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
     // Inline code
     .replace(/`([^`]+)`/g, "<code>$1</code>")
-    // Links
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    // Links (only allow http/https/mailto protocols)
+    .replace(/\[([^\]]+)\]\(((?:https?|mailto):[^)]+)\)/g, '<a href="$2">$1</a>')
     // Horizontal rules
     .replace(/^---+$/gm, "<hr>")
+    // Unordered list items
+    .replace(/^- (.+)/gm, "<li>$1</li>")
+    // Checkboxes
+    .replace(/^✅ (.+)/gm, "<li>✅ $1</li>")
+    .replace(/^🔴 (.+)/gm, "<li>🔴 $1</li>")
+    .replace(/^🟠 (.+)/gm, "<li>🟠 $1</li>")
+    .replace(/^🟡 (.+)/gm, "<li>🟡 $1</li>")
+    .replace(/^🟢 (.+)/gm, "<li>🟢 $1</li>")
     // Line breaks for paragraphs
     .replace(/\n\n/g, "</p><p>")
     .replace(/\n/g, "<br>");
 
   // Wrap in paragraph if not already wrapped in a block element
-  if (!html.startsWith("<h") && !html.startsWith("<p")) {
+  if (!html.startsWith("<h") && !html.startsWith("<p") && !html.startsWith("<table")) {
     html = `<p>${html}</p>`;
   }
 
