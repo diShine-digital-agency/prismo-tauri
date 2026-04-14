@@ -63,9 +63,14 @@ Export audit reports in multiple formats — all with professional branding:
 | Format | Branded | Printable | Method |
 |--------|---------|-----------|--------|
 | **PDF** | ✅ Cover page, logo, colors, footer | ✅ | Print dialog or md-to-pdf |
-| **HTML** | ✅ Full CSS styling | ✅ | One-click export |
+| **HTML** | ✅ Full CSS styling, XSS-safe | ✅ | One-click export |
 | **Markdown** | ✅ Header/footer branding | via viewer | One-click export |
 | **Plain Text** | ASCII text | ✅ | One-click export |
+
+### 📄 Reports
+- View and search saved audit reports
+- Loads reports from backend filesystem with fallback to sample data
+- One-click to open any report in the full Report Viewer
 
 ### 👥 Client Manager
 - Create and manage client profiles
@@ -139,6 +144,7 @@ prismo-tauri/
 │   │   ├── Sidebar.tsx         # Navigation sidebar
 │   │   ├── AuditCard.tsx       # Audit option cards
 │   │   └── ErrorBoundary.tsx   # Error catching boundary
+│   ├── constants.ts            # Centralized version constant
 │   ├── pages/
 │   │   ├── Dashboard.tsx       # Overview, quick-start
 │   │   ├── AuditRunner.tsx     # Select & run audits

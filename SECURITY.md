@@ -42,6 +42,18 @@ We will acknowledge your report within 48 hours and aim to release a fix within 
 - The app enforces a CSP that restricts script sources and style sources.
 - External network requests are limited to what is needed for audit execution.
 
+### HTML Export Sanitization
+
+- The HTML export function (`markdownToHtml`) sanitizes all user content by escaping HTML entities (`&`, `<`, `>`, `"`, `'`) before converting Markdown to HTML elements.
+- Links in exported HTML only allow safe protocols (`http:`, `https:`, `mailto:`). JavaScript URIs and other protocols are stripped.
+- This prevents XSS attacks when exported HTML files are opened in a browser.
+
+### Path Traversal Protection
+
+- Backend file operations (`read_report`, `save_report`) validate that filenames contain no path separators (`/`, `\`) or traversal sequences (`..`).
+- All paths are canonicalized and verified to stay within their base directory.
+- Symlinks pointing outside allowed directories are rejected.
+
 ### Dependencies
 
 - Frontend dependencies are audited with `npm audit` before each release.
