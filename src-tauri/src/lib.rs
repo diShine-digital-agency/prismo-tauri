@@ -27,6 +27,8 @@ pub struct PrismoConfig {
     pub version: String,
     pub language: String,
     pub default_report_format: String,
+    pub theme: String,
+    pub auto_save_reports: bool,
     pub branding: BrandingConfig,
     pub client: ClientProfile,
 }
@@ -103,12 +105,22 @@ fn get_audit_prompts() -> Vec<AuditPrompt> {
 }
 
 /// Returns the default application configuration.
+///
+/// If a saved configuration exists at `prismo.config.json` it is loaded
+/// and returned instead of the built-in defaults.
 #[tauri::command]
 fn get_config() -> PrismoConfig {
+    if let Ok(data) = fs::read_to_string("prismo.config.json") {
+        if let Ok(config) = serde_json::from_str::<PrismoConfig>(&data) {
+            return config;
+        }
+    }
     PrismoConfig {
-        version: "1.0.0".into(),
+        version: "1.1.0".into(),
         language: "en".into(),
         default_report_format: "markdown".into(),
+        theme: "dark".into(),
+        auto_save_reports: true,
         branding: BrandingConfig {
             agency: "diShine Digital Agency".into(),
             website: "https://dishine.it".into(),

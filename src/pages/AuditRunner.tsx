@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import AuditCard from "../components/AuditCard";
 
@@ -32,6 +32,16 @@ const auditIcons: Record<string, string> = {
   "api-security": "🔌",
 };
 
+/** Audit IDs that target the local system and do not need a URL. */
+const LOCAL_AUDIT_IDS = new Set([
+  "windows-health",
+  "linux-health",
+  "macos-health",
+  "log-analysis",
+  "network-diagnosis",
+  "system-security",
+]);
+
 const categories = [
   "All",
   "System Health",
@@ -45,49 +55,65 @@ const categories = [
   "API",
 ];
 
-export default function AuditRunner() {
-  const [audits] = useState<AuditPrompt[]>(() => {
-    // Initialize synchronously with default data, then try to fetch from backend
-    return [
-      { id: "windows-health", name: "Windows System Diagnosis", category: "System Health", description: "CPU, RAM, disk, services, logs, pending updates", filename: "system/windows-health.md" },
-      { id: "linux-health", name: "Linux System Diagnosis", category: "System Health", description: "OS, hardware, storage, services, logs, network", filename: "system/linux-health.md" },
-      { id: "macos-health", name: "macOS System Diagnosis", category: "System Health", description: "APFS, Time Machine, daemons, security, performance", filename: "system/macos-health.md" },
-      { id: "log-analysis", name: "Log Analysis", category: "System Health", description: "Parse any log file for errors, warnings, and patterns", filename: "system/log-analysis.md" },
-      { id: "network-diagnosis", name: "Network Diagnostics", category: "System Health", description: "Interfaces, DNS, routing, ports, firewall, connectivity", filename: "system/network-diagnosis.md" },
-      { id: "website-performance", name: "Website Performance", category: "Web & Performance", description: "Core Web Vitals (LCP, INP, CLS), Lighthouse metrics", filename: "web/website-performance.md" },
-      { id: "tech-stack", name: "Tech Stack Analysis", category: "Web & Performance", description: "Frameworks, CMS, hosting, CDN, third-party scripts", filename: "web/tech-stack-analysis.md" },
-      { id: "accessibility", name: "Accessibility Audit", category: "Web & Performance", description: "WCAG 2.1 AA compliance checks", filename: "web/accessibility-audit.md" },
-      { id: "seo-technical", name: "Technical SEO", category: "SEO", description: "robots.txt, sitemaps, canonicals, schema, hreflang, redirects", filename: "seo/seo-technical.md" },
-      { id: "seo-onpage", name: "On-Page SEO", category: "SEO", description: "Titles, metas, headings, content quality, internal links", filename: "seo/seo-onpage.md" },
-      { id: "seo-competitive", name: "Competitive SEO", category: "SEO", description: "Side-by-side SEO comparison against competitors", filename: "seo/seo-competitive.md" },
-      { id: "martech-stack", name: "MarTech Stack", category: "MarTech & Data", description: "GTM, GA4, pixels, CRM, consent management", filename: "martech/martech-stack-audit.md" },
-      { id: "data-quality", name: "Data Quality", category: "MarTech & Data", description: "Event tracking, UTM consistency, data layer validation", filename: "martech/martech-data-quality.md" },
-      { id: "website-security", name: "Website Security", category: "Security", description: "SSL/TLS, security headers, CMS vulnerabilities, cookie flags", filename: "security/website-security.md" },
-      { id: "system-security", name: "System Security", category: "Security", description: "Users, permissions, firewall, SSH, encryption, patching", filename: "security/system-security.md" },
-      { id: "email-dns", name: "Email & DNS Audit", category: "Email & DNS", description: "SPF, DKIM, DMARC, MX records, DNS security", filename: "email-dns/email-dns-audit.md" },
-      { id: "gdpr-privacy", name: "GDPR & Privacy", category: "Privacy", description: "Cookie consent, privacy policy, data collection compliance", filename: "privacy/gdpr-privacy-audit.md" },
-      { id: "social-media", name: "Social Media & Structured Data", category: "Social", description: "Open Graph, Twitter Cards, Schema.org markup", filename: "social/social-media-audit.md" },
-      { id: "api-security", name: "API Security", category: "API", description: "Endpoints, auth, CORS, rate limiting, error handling", filename: "api/api-security-audit.md" },
-    ];
-  });
+/** Default audits used when the backend is not reachable. */
+const DEFAULT_AUDITS: AuditPrompt[] = [
+  { id: "windows-health", name: "Windows System Diagnosis", category: "System Health", description: "CPU, RAM, disk, services, logs, pending updates", filename: "system/windows-health.md" },
+  { id: "linux-health", name: "Linux System Diagnosis", category: "System Health", description: "OS, hardware, storage, services, logs, network", filename: "system/linux-health.md" },
+  { id: "macos-health", name: "macOS System Diagnosis", category: "System Health", description: "APFS, Time Machine, daemons, security, performance", filename: "system/macos-health.md" },
+  { id: "log-analysis", name: "Log Analysis", category: "System Health", description: "Parse any log file for errors, warnings, and patterns", filename: "system/log-analysis.md" },
+  { id: "network-diagnosis", name: "Network Diagnostics", category: "System Health", description: "Interfaces, DNS, routing, ports, firewall, connectivity", filename: "system/network-diagnosis.md" },
+  { id: "website-performance", name: "Website Performance", category: "Web & Performance", description: "Core Web Vitals (LCP, INP, CLS), Lighthouse metrics", filename: "web/website-performance.md" },
+  { id: "tech-stack", name: "Tech Stack Analysis", category: "Web & Performance", description: "Frameworks, CMS, hosting, CDN, third-party scripts", filename: "web/tech-stack-analysis.md" },
+  { id: "accessibility", name: "Accessibility Audit", category: "Web & Performance", description: "WCAG 2.1 AA compliance checks", filename: "web/accessibility-audit.md" },
+  { id: "seo-technical", name: "Technical SEO", category: "SEO", description: "robots.txt, sitemaps, canonicals, schema, hreflang, redirects", filename: "seo/seo-technical.md" },
+  { id: "seo-onpage", name: "On-Page SEO", category: "SEO", description: "Titles, metas, headings, content quality, internal links", filename: "seo/seo-onpage.md" },
+  { id: "seo-competitive", name: "Competitive SEO", category: "SEO", description: "Side-by-side SEO comparison against competitors", filename: "seo/seo-competitive.md" },
+  { id: "martech-stack", name: "MarTech Stack", category: "MarTech & Data", description: "GTM, GA4, pixels, CRM, consent management", filename: "martech/martech-stack-audit.md" },
+  { id: "data-quality", name: "Data Quality", category: "MarTech & Data", description: "Event tracking, UTM consistency, data layer validation", filename: "martech/martech-data-quality.md" },
+  { id: "website-security", name: "Website Security", category: "Security", description: "SSL/TLS, security headers, CMS vulnerabilities, cookie flags", filename: "security/website-security.md" },
+  { id: "system-security", name: "System Security", category: "Security", description: "Users, permissions, firewall, SSH, encryption, patching", filename: "security/system-security.md" },
+  { id: "email-dns", name: "Email & DNS Audit", category: "Email & DNS", description: "SPF, DKIM, DMARC, MX records, DNS security", filename: "email-dns/email-dns-audit.md" },
+  { id: "gdpr-privacy", name: "GDPR & Privacy", category: "Privacy", description: "Cookie consent, privacy policy, data collection compliance", filename: "privacy/gdpr-privacy-audit.md" },
+  { id: "social-media", name: "Social Media & Structured Data", category: "Social", description: "Open Graph, Twitter Cards, Schema.org markup", filename: "social/social-media-audit.md" },
+  { id: "api-security", name: "API Security", category: "API", description: "Endpoints, auth, CORS, rate limiting, error handling", filename: "api/api-security-audit.md" },
+];
 
+export default function AuditRunner() {
+  const [audits, setAudits] = useState<AuditPrompt[]>(DEFAULT_AUDITS);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedAudit, setSelectedAudit] = useState<AuditPrompt | null>(null);
   const [targetUrl, setTargetUrl] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState("");
 
+  // Try to load audit list from the Rust backend
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const backendAudits = await invoke<AuditPrompt[]>("get_audit_prompts");
+        if (!cancelled && backendAudits.length > 0) {
+          setAudits(backendAudits);
+        }
+      } catch {
+        // Backend unavailable — use defaults already in state
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const filteredAudits = selectedCategory === "All"
     ? audits
     : audits.filter((a) => a.category === selectedCategory);
 
+  const needsUrl = selectedAudit ? !LOCAL_AUDIT_IDS.has(selectedAudit.id) : false;
+
   const handleRunAudit = async () => {
     if (!selectedAudit) return;
     setIsRunning(true);
-    setOutput("Starting audit...\n\nConnecting to AI engine...\n");
+    setOutput("Starting audit…\n\nConnecting to AI engine…\n");
 
     try {
-      // In a full implementation, this would invoke the Claude CLI via Tauri shell plugin
       const systemInfo = await invoke<{ os: string; arch: string }>("get_system_info");
       setOutput((prev) =>
         prev +
@@ -102,9 +128,9 @@ export default function AuditRunner() {
       );
     } catch (e: unknown) {
       setOutput((prev) => prev + `\nError: ${e instanceof Error ? e.message : String(e)}\n`);
+    } finally {
+      setIsRunning(false);
     }
-
-    setIsRunning(false);
   };
 
   if (selectedAudit) {
@@ -129,7 +155,7 @@ export default function AuditRunner() {
           </div>
 
           {/* Target URL input */}
-          {!selectedAudit.id.includes("health") && !selectedAudit.id.includes("log-analysis") && !selectedAudit.id.includes("system-security") && (
+          {needsUrl && (
             <div className="mb-4">
               <label htmlFor="audit-target-url" className="block text-sm text-gray-400 mb-2">Target URL or Domain</label>
               <input
