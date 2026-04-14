@@ -97,7 +97,7 @@ The app runs on **Windows, macOS, and Linux** and is built with [Tauri](https://
 #### Option A: Pre-built Installer (Recommended)
 
 1. Go to the [Releases page](https://github.com/diShine-digital-agency/prismo-tauri/releases)
-2. Download the file ending in `.msi` (e.g., `Prismo_1.0.0_x64_en-US.msi`)
+2. Download the file ending in `.msi` (e.g., `Prismo_1.1.0_x64_en-US.msi`)
 3. Double-click the downloaded file
 4. If Windows shows "Windows protected your PC", click **More info** → **Run anyway** (this is normal for unsigned apps)
 5. Follow the installer wizard — click **Next** → **Next** → **Install** → **Finish**
@@ -187,11 +187,11 @@ The app runs on **Windows, macOS, and Linux** and is built with [Tauri](https://
 3. Install:
    ```bash
    # Debian/Ubuntu (.deb)
-   sudo dpkg -i prismo_1.0.0_amd64.deb
+   sudo dpkg -i prismo_1.1.0_amd64.deb
 
    # AppImage (any distro)
-   chmod +x Prismo_1.0.0_amd64.AppImage
-   ./Prismo_1.0.0_amd64.AppImage
+   chmod +x Prismo_1.1.0_amd64.AppImage
+   ./Prismo_1.1.0_amd64.AppImage
    ```
 
 #### Option B: Build from Source
@@ -456,15 +456,15 @@ npx md-to-pdf your-report.md --stylesheet toolkit/export/report-style.css --as-h
 
 ## 11. Managing Clients
 
-The **Client Manager** lets you keep track of the companies and individuals you audit.
+The **Client Manager** lets you keep track of the companies and individuals you audit. Client data is persisted in your browser's local storage, so your profiles survive page reloads and application restarts.
 
 ### Creating a Client Profile
 
 1. Click **👥 Clients** in the sidebar
 2. Click **+ New Client**
 3. Fill in the fields:
-   - **Client Name** — Company or person name
-   - **Domain** — Their website (e.g., `acme.com`)
+   - **Client Name** *(required)* — Company or person name
+   - **Domain** *(required)* — Their website (e.g., `acme.com`)
    - **Industry** — E.g., "E-commerce", "SaaS", "Healthcare"
    - **Tech Stack** — E.g., "WordPress + WooCommerce"
    - **Analytics** — E.g., "GA4 + GTM"
@@ -472,10 +472,14 @@ The **Client Manager** lets you keep track of the companies and individuals you 
    - **Competitors** — Comma-separated list (e.g., `rival1.com, rival2.com`)
 4. Click **Save Client**
 
+### Searching Clients
+
+Use the search bar at the top of the client list to filter by name, domain, or industry.
+
 ### Editing or Deleting
 
-- Click **Edit** on any client card to modify their info
-- Click **Delete** to remove a client
+- Click **Edit** on any client card to modify their info (the domain field is locked during editing to prevent accidental duplication)
+- Click **Delete** to remove a client — you will be asked to confirm before the client is removed
 
 > 📖 **Related**: See [docs/examples/sample-client-profile.json](examples/sample-client-profile.json) for an example of what a client profile looks like.
 
@@ -483,7 +487,7 @@ The **Client Manager** lets you keep track of the companies and individuals you 
 
 ## 12. Settings & Configuration
 
-Click **⚙️ Settings** in the sidebar.
+Click **⚙️ Settings** in the sidebar. Your settings are automatically loaded from your last saved configuration.
 
 ### 12.1 Language
 
@@ -503,7 +507,7 @@ To run AI-powered audits, you need an Anthropic API key:
 5. Paste it in the **Anthropic API Key** field in Settings
 6. Click **Save Settings**
 
-> ⚠️ **Security note**: Your API key is saved locally on your computer in a configuration file. Never share this file. See [SECURITY.md](../SECURITY.md) for details.
+> ⚠️ **Security note**: Your API key is saved in your browser's local storage and is never written to disk configuration files. Never share your browser data. See [SECURITY.md](../SECURITY.md) for details.
 
 ### 12.3 White-Label / Rebranding
 

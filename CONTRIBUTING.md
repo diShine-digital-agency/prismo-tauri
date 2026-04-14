@@ -67,8 +67,8 @@ npm run tauri dev
 
 1. Create a new `.md` file in `toolkit/prompts/<category>/`.
 2. Add the audit definition in `src-tauri/src/lib.rs` (`get_audit_prompts`).
-3. Add the matching entry in `src/pages/AuditRunner.tsx`.
-4. Add an icon mapping in the `auditIcons` record.
+3. Add the matching entry in `src/pages/AuditRunner.tsx` (both `DEFAULT_AUDITS` and `auditIcons`).
+4. If the audit targets the local system (no URL needed), add its ID to `LOCAL_AUDIT_IDS`.
 5. Update the README audit count if adding a new category.
 
 ## Reporting Issues

@@ -1,6 +1,6 @@
 [package]
 name = "prismo-tauri"
-version = "1.0.0"
+version = "1.1.0"
 description = "Prismo — AI Consulting Toolkit by diShine Digital Agency"
 authors = ["diShine Digital Agency <kevin@dishine.it>"]
 edition = "2021"
