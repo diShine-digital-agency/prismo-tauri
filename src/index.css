@@ -14,7 +14,7 @@
   --prismo-info: #74B9FF;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar (Webkit) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -30,7 +30,13 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6C5CE7;
+  background: var(--prismo-purple);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4a4a6a #1a1a2e;
 }
 
 /* Markdown rendered content */
@@ -41,13 +47,29 @@
 .prose ul, .prose ol { margin-top: 0.25rem; margin-bottom: 0.5rem; padding-left: 1.5rem; }
 .prose li { margin-bottom: 0.2rem; }
 .prose table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
-.prose th { background-color: #6C5CE7; color: white; padding: 0.5rem 0.75rem; text-align: left; font-weight: 600; }
+.prose th { background-color: var(--prismo-purple); color: white; padding: 0.5rem 0.75rem; text-align: left; font-weight: 600; }
 .prose td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #374151; }
 .prose tr:hover { background-color: rgba(108, 92, 231, 0.1); }
-.prose code { background-color: #1e1e3f; padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; color: #E17055; }
+.prose code { background-color: #1e1e3f; padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.85em; color: var(--prismo-danger); }
 .prose pre { background-color: #0d0d1a; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.75rem 0; }
 .prose pre code { background: none; padding: 0; color: #e2e8f0; }
-.prose blockquote { border-left: 3px solid #6C5CE7; padding-left: 1rem; margin: 0.75rem 0; color: #9ca3af; font-style: italic; }
+.prose blockquote { border-left: 3px solid var(--prismo-purple); padding-left: 1rem; margin: 0.75rem 0; color: #9ca3af; font-style: italic; }
 .prose hr { border: none; border-top: 1px solid #374151; margin: 1.5rem 0; }
-.prose a { color: #6C5CE7; text-decoration: underline; }
+.prose a { color: var(--prismo-purple); text-decoration: underline; }
 .prose strong { color: #f3f4f6; }
+
+/* Print stylesheet for ReportViewer */
+@media print {
+  body { background: white !important; color: black !important; }
+  .prose h1 { color: var(--prismo-purple) !important; }
+  .prose h2 { color: var(--prismo-charcoal) !important; }
+  .prose h3 { color: var(--prismo-purple) !important; }
+  .prose th { background-color: var(--prismo-purple) !important; color: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .prose code { color: var(--prismo-danger) !important; }
+  .prose strong { color: black !important; }
+  .prose a { color: var(--prismo-purple) !important; }
+  /* Hide sidebar and navigation during print */
+  aside, nav, button { display: none !important; }
+  main { margin: 0 !important; padding: 0 !important; }
+  .prose { max-width: 100% !important; }
+}

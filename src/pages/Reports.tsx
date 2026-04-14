@@ -1,17 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
 
 interface ReportsProps {
   onViewReport: (content: string) => void;
 }
 
-// Sample reports for demonstration
-const sampleReports = [
+interface ReportMeta {
+  filename: string;
+  title: string;
+  date: string;
+  size: number;
+}
+
+// Sample reports used as fallback when no backend reports are available
+const sampleReports: ReportMeta[] = [
   {
     filename: "website-performance-acme-2026-04-07.md",
     title: "Website Performance - acme.com",
     date: "2026-04-07 14:32",
     size: 4200,
-    content: `# Website Performance Audit Report
+  },
+  {
+    filename: "seo-technical-acme-2026-03-20.md",
+    title: "Technical SEO - acme.com",
+    date: "2026-03-20 10:15",
+    size: 3800,
+  },
+];
+
+// Embedded sample content for demo reports (used when backend is unavailable)
+const sampleContent: Record<string, string> = {
+  "website-performance-acme-2026-04-07.md": `# Website Performance Audit Report
 
 **Client**: Acme Corp
 **Domain**: acme.com
@@ -90,13 +109,7 @@ The website **acme.com** shows moderate performance with several critical optimi
 ---
 
 *Powered by Prismo | diShine Digital Agency | dishine.it*`,
-  },
-  {
-    filename: "seo-technical-acme-2026-03-20.md",
-    title: "Technical SEO - acme.com",
-    date: "2026-03-20 10:15",
-    size: 3800,
-    content: `# Technical SEO Audit Report
+  "seo-technical-acme-2026-03-20.md": `# Technical SEO Audit Report
 
 **Client**: Acme Corp
 **Domain**: acme.com
@@ -138,12 +151,54 @@ The technical SEO foundation of acme.com requires attention. Missing hreflang ta
 ---
 
 *Powered by Prismo | diShine Digital Agency | dishine.it*`,
-  },
-];
+};
 
 export default function Reports({ onViewReport }: ReportsProps) {
-  const [reports] = useState(sampleReports);
+  const [reports, setReports] = useState<ReportMeta[]>(sampleReports);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Try to load reports from the backend
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const backendReports = await invoke<ReportMeta[]>("list_reports", {
+          reportsDir: "prismo-reports",
+        });
+        if (!cancelled && backendReports.length > 0) {
+          setReports(backendReports);
+        }
+      } catch {
+        // Backend unavailable — keep sample reports
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleViewReport = async (report: ReportMeta) => {
+    // Check for embedded sample content first (demo mode)
+    if (sampleContent[report.filename]) {
+      onViewReport(sampleContent[report.filename]);
+      return;
+    }
+    // Try reading from backend
+    try {
+      setLoadError(null);
+      const content = await invoke<string>("read_report", {
+        baseDir: "prismo-reports",
+        filename: report.filename,
+      });
+      onViewReport(content);
+    } catch (e: unknown) {
+      setLoadError(`Failed to load report: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
 
   const filteredReports = reports.filter(
     (r) =>
@@ -175,38 +230,54 @@ export default function Reports({ onViewReport }: ReportsProps) {
         />
       </div>
 
-      {/* Report List */}
-      <div className="space-y-3">
-        {filteredReports.map((report) => (
-          <button
-            key={report.filename}
-            onClick={() => onViewReport(report.content)}
-            className="w-full bg-gray-900 border border-gray-800 rounded-xl p-5 text-left hover:border-purple-500/40 transition-all group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-2xl">📄</span>
-                <div>
-                  <h3 className="font-medium text-gray-200 group-hover:text-purple-400 transition-colors">
-                    {report.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {report.filename} · {formatSize(report.size)} · {report.date}
-                  </p>
-                </div>
-              </div>
-              <span className="text-gray-600 group-hover:text-purple-400 transition-colors">→</span>
-            </div>
-          </button>
-        ))}
+      {/* Loading state */}
+      {loading && (
+        <div className="text-center py-8 text-gray-500">
+          <p>Loading reports…</p>
+        </div>
+      )}
 
-        {filteredReports.length === 0 && (
-          <div role="status" aria-live="polite" className="text-center py-12 text-gray-500">
-            <p className="text-4xl mb-3">📭</p>
-            <p>No reports found. Run an audit to generate your first report.</p>
-          </div>
-        )}
-      </div>
+      {/* Load error */}
+      {loadError && (
+        <div role="alert" className="mb-4 bg-red-900/30 border border-red-500/40 rounded-lg px-4 py-3 text-sm text-red-300">
+          {loadError}
+        </div>
+      )}
+
+      {/* Report List */}
+      {!loading && (
+        <div className="space-y-3">
+          {filteredReports.map((report) => (
+            <button
+              key={report.filename}
+              onClick={() => handleViewReport(report)}
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl p-5 text-left hover:border-purple-500/40 transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl" aria-hidden="true">📄</span>
+                  <div>
+                    <h3 className="font-medium text-gray-200 group-hover:text-purple-400 transition-colors">
+                      {report.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {report.filename} · {formatSize(report.size)} · {report.date}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-gray-600 group-hover:text-purple-400 transition-colors" aria-hidden="true">→</span>
+              </div>
+            </button>
+          ))}
+
+          {filteredReports.length === 0 && (
+            <div role="status" aria-live="polite" className="text-center py-12 text-gray-500">
+              <p className="text-4xl mb-3" aria-hidden="true">📭</p>
+              <p>No reports found. Run an audit to generate your first report.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

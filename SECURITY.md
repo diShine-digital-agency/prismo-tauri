@@ -6,7 +6,8 @@
 
 | Version | Supported          |
 |---------|--------------------|
-| 1.0.x   | ✅ Active support  |
+| 1.1.x   | ✅ Active support  |
+| 1.0.x   | ✅ Security fixes  |
 
 ## Reporting a Vulnerability
 
@@ -26,9 +27,9 @@ We will acknowledge your report within 48 hours and aim to release a fix within 
 
 ### API Key Storage
 
-- API keys entered in Settings are stored in the application's local configuration file (`prismo.config.json`).
-- The configuration file is stored in the OS-specific app data directory.
-- API keys are **not** encrypted at rest. Do not share your configuration files.
+- API keys entered in Settings are stored in the browser's `localStorage` on the client side.
+- API keys are **not** written to the application configuration file (`prismo.config.json`) — they stay client-side only.
+- API keys are **not** encrypted at rest. Do not share your browser storage or app data directory.
 
 ### File System Access
 
@@ -40,6 +41,18 @@ We will acknowledge your report within 48 hours and aim to release a fix within 
 
 - The app enforces a CSP that restricts script sources and style sources.
 - External network requests are limited to what is needed for audit execution.
+
+### HTML Export Sanitization
+
+- The HTML export function (`markdownToHtml`) sanitizes all user content by escaping HTML entities (`&`, `<`, `>`, `"`, `'`) before converting Markdown to HTML elements.
+- Links in exported HTML only allow safe protocols (`http:`, `https:`, `mailto:`). JavaScript URIs and other protocols are stripped.
+- This prevents XSS attacks when exported HTML files are opened in a browser.
+
+### Path Traversal Protection
+
+- Backend file operations (`read_report`, `save_report`) validate that filenames contain no path separators (`/`, `\`) or traversal sequences (`..`).
+- All paths are canonicalized and verified to stay within their base directory.
+- Symlinks pointing outside allowed directories are rejected.
 
 ### Dependencies
 

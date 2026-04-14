@@ -1,5 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { APP_VERSION } from "../constants";
+
+interface PrismoConfig {
+  version: string;
+  language: string;
+  default_report_format: string;
+  theme: string;
+  auto_save_reports: boolean;
+  branding: {
+    agency: string;
+    website: string;
+  };
+  client: {
+    name: string;
+    domain: string;
+    industry: string;
+    notes: string;
+  };
+}
 
 export default function Settings() {
   const [language, setLanguage] = useState("en");
@@ -11,15 +30,50 @@ export default function Settings() {
   const [theme, setTheme] = useState("dark");
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up save confirmation timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
+
+  // Load saved config on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const config = await invoke<PrismoConfig>("get_config");
+        if (cancelled) return;
+        setLanguage(config.language);
+        setTheme(config.theme ?? "dark");
+        setAutoSaveReports(config.auto_save_reports ?? true);
+        setAgencyName(config.branding.agency);
+        setAgencyWebsite(config.branding.website);
+      } catch {
+        // Fall back to defaults already set in state
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    // Load API key from localStorage (kept client-side only)
+    const storedKey = localStorage.getItem("prismo_api_key");
+    if (storedKey) setApiKey(storedKey);
+    return () => { cancelled = true; };
+  }, []);
 
   const handleSave = async () => {
     try {
       setSaveError(null);
       await invoke("save_config", {
         config: {
-          version: "1.0.0",
+          version: APP_VERSION,
           language,
           default_report_format: "markdown",
+          theme,
+          auto_save_reports: autoSaveReports,
           branding: {
             agency: agencyName,
             website: agencyWebsite,
@@ -32,12 +86,27 @@ export default function Settings() {
           },
         },
       });
+      // Store API key in localStorage (never sent to backend for security)
+      if (apiKey) {
+        localStorage.setItem("prismo_api_key", apiKey);
+      } else {
+        localStorage.removeItem("prismo_api_key");
+      }
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => setSaved(false), 2000);
     } catch (e: unknown) {
       setSaveError(`Failed to save settings: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-8 max-w-2xl mx-auto">
+        <p className="text-gray-400">Loading settings…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-2xl mx-auto">

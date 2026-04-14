@@ -27,6 +27,8 @@ pub struct PrismoConfig {
     pub version: String,
     pub language: String,
     pub default_report_format: String,
+    pub theme: String,
+    pub auto_save_reports: bool,
     pub branding: BrandingConfig,
     pub client: ClientProfile,
 }
@@ -69,8 +71,7 @@ fn validate_path_inside(base_dir: &Path, requested: &Path) -> Result<PathBuf, St
 fn filename_to_title(filename: &str) -> String {
     filename
         .trim_end_matches(".md")
-        .replace('-', " ")
-        .replace('_', " ")
+        .replace(['-', '_'], " ")
 }
 
 /// Returns all 19 built-in audit prompt definitions.
@@ -103,12 +104,22 @@ fn get_audit_prompts() -> Vec<AuditPrompt> {
 }
 
 /// Returns the default application configuration.
+///
+/// If a saved configuration exists at `prismo.config.json` it is loaded
+/// and returned instead of the built-in defaults.
 #[tauri::command]
 fn get_config() -> PrismoConfig {
+    if let Ok(data) = fs::read_to_string("prismo.config.json") {
+        if let Ok(config) = serde_json::from_str::<PrismoConfig>(&data) {
+            return config;
+        }
+    }
     PrismoConfig {
-        version: "1.0.0".into(),
+        version: "1.1.0".into(),
         language: "en".into(),
         default_report_format: "markdown".into(),
+        theme: "dark".into(),
+        auto_save_reports: true,
         branding: BrandingConfig {
             agency: "diShine Digital Agency".into(),
             website: "https://dishine.it".into(),
@@ -254,6 +265,293 @@ fn get_system_info() -> serde_json::Value {
         "arch": std::env::consts::ARCH,
         "family": std::env::consts::FAMILY,
     })
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Tests
+// ──────────────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    // ── filename_to_title ────────────────────────────────────────────────────
+
+    #[test]
+    fn title_strips_md_extension() {
+        assert_eq!(filename_to_title("report.md"), "report");
+    }
+
+    #[test]
+    fn title_replaces_dashes_and_underscores() {
+        assert_eq!(
+            filename_to_title("seo-technical-acme-2026.md"),
+            "seo technical acme 2026"
+        );
+        assert_eq!(
+            filename_to_title("my_report_v2.md"),
+            "my report v2"
+        );
+    }
+
+    #[test]
+    fn title_handles_no_extension() {
+        assert_eq!(filename_to_title("report"), "report");
+    }
+
+    #[test]
+    fn title_handles_empty_string() {
+        assert_eq!(filename_to_title(""), "");
+    }
+
+    // ── validate_path_inside ────────────────────────────────────────────────
+
+    #[test]
+    fn validate_path_inside_accepts_child() {
+        let dir = std::env::temp_dir().join("prismo_test_validate");
+        let _ = fs::create_dir_all(&dir);
+        let file = dir.join("test.md");
+        fs::write(&file, "content").unwrap();
+
+        let result = validate_path_inside(&dir, &file);
+        assert!(result.is_ok());
+
+        // Cleanup
+        let _ = fs::remove_file(&file);
+        let _ = fs::remove_dir(&dir);
+    }
+
+    #[test]
+    fn validate_path_inside_rejects_outside() {
+        let dir = std::env::temp_dir().join("prismo_test_outside");
+        let _ = fs::create_dir_all(&dir);
+        // Try to escape to the temp root
+        let outside = std::env::temp_dir().join("prismo_test_validate_outside_marker.txt");
+        fs::write(&outside, "x").unwrap();
+
+        let result = validate_path_inside(&dir, &outside);
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err();
+        assert!(
+            err_msg.contains("outside") || err_msg.contains("denied") || err_msg.contains("Invalid"),
+            "Unexpected error: {}",
+            err_msg
+        );
+
+        let _ = fs::remove_file(&outside);
+        let _ = fs::remove_dir(&dir);
+    }
+
+    #[test]
+    fn validate_path_inside_rejects_nonexistent() {
+        let dir = std::env::temp_dir().join("prismo_test_noexist");
+        let _ = fs::create_dir_all(&dir);
+        let fake = dir.join("does_not_exist.md");
+
+        let result = validate_path_inside(&dir, &fake);
+        assert!(result.is_err());
+
+        let _ = fs::remove_dir(&dir);
+    }
+
+    // ── get_audit_prompts ───────────────────────────────────────────────────
+
+    #[test]
+    fn audit_prompts_returns_19_items() {
+        let prompts = get_audit_prompts();
+        assert_eq!(prompts.len(), 19);
+    }
+
+    #[test]
+    fn audit_prompts_have_unique_ids() {
+        let prompts = get_audit_prompts();
+        let mut ids: Vec<&str> = prompts.iter().map(|p| p.id.as_str()).collect();
+        ids.sort();
+        ids.dedup();
+        assert_eq!(ids.len(), 19);
+    }
+
+    #[test]
+    fn audit_prompts_all_have_filenames() {
+        let prompts = get_audit_prompts();
+        for p in &prompts {
+            assert!(!p.filename.is_empty(), "Prompt {} has empty filename", p.id);
+            assert!(p.filename.ends_with(".md"), "Prompt {} filename doesn't end with .md", p.id);
+        }
+    }
+
+    #[test]
+    fn audit_prompts_cover_all_categories() {
+        let prompts = get_audit_prompts();
+        let categories: std::collections::HashSet<&str> =
+            prompts.iter().map(|p| p.category.as_str()).collect();
+        let expected = vec![
+            "System Health", "Web & Performance", "SEO", "MarTech & Data",
+            "Security", "Email & DNS", "Privacy", "Social", "API",
+        ];
+        for cat in expected {
+            assert!(categories.contains(cat), "Missing category: {}", cat);
+        }
+    }
+
+    // ── get_config ──────────────────────────────────────────────────────────
+
+    #[test]
+    fn default_config_has_correct_version() {
+        let config = get_config();
+        assert_eq!(config.version, "1.1.0");
+    }
+
+    #[test]
+    fn default_config_has_branding() {
+        let config = get_config();
+        assert!(!config.branding.agency.is_empty());
+        assert!(!config.branding.website.is_empty());
+    }
+
+    #[test]
+    fn default_config_theme_is_dark() {
+        let config = get_config();
+        assert_eq!(config.theme, "dark");
+    }
+
+    #[test]
+    fn default_config_auto_save_is_true() {
+        let config = get_config();
+        assert!(config.auto_save_reports);
+    }
+
+    // ── save_config / get_config roundtrip ──────────────────────────────────
+
+    #[test]
+    fn config_serialization_roundtrip() {
+        let config = PrismoConfig {
+            version: "1.1.0".into(),
+            language: "it".into(),
+            default_report_format: "html".into(),
+            theme: "light".into(),
+            auto_save_reports: false,
+            branding: BrandingConfig {
+                agency: "Test Agency".into(),
+                website: "https://test.com".into(),
+            },
+            client: ClientProfile {
+                name: "Test".into(),
+                domain: "test.com".into(),
+                industry: "Tech".into(),
+                notes: "Note".into(),
+            },
+        };
+        let json = serde_json::to_string(&config).unwrap();
+        let parsed: PrismoConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.language, "it");
+        assert_eq!(parsed.theme, "light");
+        assert!(!parsed.auto_save_reports);
+        assert_eq!(parsed.branding.agency, "Test Agency");
+    }
+
+    // ── read_report ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn read_report_rejects_path_traversal() {
+        let result = read_report("reports".into(), "../etc/passwd".into());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn read_report_rejects_slashes_in_filename() {
+        let result = read_report("reports".into(), "subdir/file.md".into());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn read_report_rejects_backslash() {
+        let result = read_report("reports".into(), "sub\\file.md".into());
+        assert!(result.is_err());
+    }
+
+    // ── save_report ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn save_report_rejects_path_traversal() {
+        let result = save_report("reports".into(), "../evil.md".into(), "bad".into());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn save_report_rejects_slashes() {
+        let result = save_report("reports".into(), "sub/file.md".into(), "bad".into());
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn save_report_writes_and_reads_back() {
+        let dir = std::env::temp_dir().join("prismo_test_save_report");
+        let _ = fs::remove_dir_all(&dir);
+
+        let dir_str = dir.to_str().unwrap().to_string();
+        let result = save_report(dir_str.clone(), "test-report.md".into(), "# Test\nHello".into());
+        assert!(result.is_ok(), "save_report failed: {:?}", result);
+
+        let content = read_report(dir_str, "test-report.md".into());
+        assert!(content.is_ok());
+        assert_eq!(content.unwrap(), "# Test\nHello");
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // ── list_reports ────────────────────────────────────────────────────────
+
+    #[test]
+    fn list_reports_empty_for_nonexistent_dir() {
+        let result = list_reports("/tmp/prismo_nonexistent_dir_xyz".into());
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
+    }
+
+    #[test]
+    fn list_reports_finds_md_files() {
+        let dir = std::env::temp_dir().join("prismo_test_list_reports");
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("report1.md"), "# Report 1").unwrap();
+        fs::write(dir.join("report2.md"), "# Report 2").unwrap();
+        fs::write(dir.join("ignore.txt"), "not a report").unwrap();
+
+        let result = list_reports(dir.to_str().unwrap().into());
+        assert!(result.is_ok());
+        let reports = result.unwrap();
+        assert_eq!(reports.len(), 2);
+        assert!(reports.iter().all(|r| r.filename.ends_with(".md")));
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn list_reports_ignores_non_md_files() {
+        let dir = std::env::temp_dir().join("prismo_test_list_ignore");
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("data.json"), "{}").unwrap();
+        fs::write(dir.join("notes.txt"), "note").unwrap();
+
+        let result = list_reports(dir.to_str().unwrap().into());
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_empty());
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // ── get_system_info ─────────────────────────────────────────────────────
+
+    #[test]
+    fn system_info_has_expected_fields() {
+        let info = get_system_info();
+        assert!(info.get("os").is_some());
+        assert!(info.get("arch").is_some());
+        assert!(info.get("family").is_some());
+    }
 }
 
 /// Initialise and run the Tauri application.

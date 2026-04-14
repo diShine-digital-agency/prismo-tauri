@@ -1,5 +1,6 @@
 import { memo } from "react";
 import type { Page } from "../App";
+import { APP_VERSION } from "../constants";
 
 const navItems: { id: Page; label: string; icon: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -16,12 +17,15 @@ interface SidebarProps {
 }
 
 export default memo(function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+  // Treat "report-viewer" as the "reports" page for sidebar highlighting
+  const activePage = currentPage === "report-viewer" ? "reports" : currentPage;
+
   return (
-    <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
+    <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col" aria-label="Main navigation">
       {/* Brand Header */}
       <div className="p-6 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-purple-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-purple-500/20" aria-hidden="true">
             P
           </div>
           <div>
@@ -32,18 +36,19 @@ export default memo(function Sidebar({ currentPage, onNavigate }: SidebarProps) 
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1" aria-label="Sidebar navigation">
         {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => onNavigate(item.id)}
+            aria-current={activePage === item.id ? "page" : undefined}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 ${
-              currentPage === item.id
+              activePage === item.id
                 ? "bg-purple-600/20 text-purple-400 border border-purple-500/30"
                 : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/60"
             }`}
           >
-            <span className="text-lg">{item.icon}</span>
+            <span className="text-lg" aria-hidden="true">{item.icon}</span>
             <span>{item.label}</span>
           </button>
         ))}
@@ -54,7 +59,7 @@ export default memo(function Sidebar({ currentPage, onNavigate }: SidebarProps) 
         <div className="text-center">
           <p className="text-xs text-gray-600">Powered by</p>
           <p className="text-xs text-purple-400 font-medium">diShine Digital Agency</p>
-          <p className="text-xs text-gray-600 mt-1">v1.0.0</p>
+          <p className="text-xs text-gray-600 mt-1">v{APP_VERSION}</p>
         </div>
       </div>
     </aside>
