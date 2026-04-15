@@ -6,7 +6,7 @@
 
 ***Transform. Automate. Shine!***
 
-[![Website](https://img.shields.io/badge/Website-dishine.it-blue)](https://dishine.it/blog/prismo-ai-consulting-toolkit-usb/)
+[![Website](https://img.shields.io/badge/Website-dishine.it-blue)](https://dishine.it/)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-diShine-blue)](https://linkedin.com/company/100682596)
 [![Location](https://img.shields.io/badge/Location-Milan%2C%20Italy-green)]()
 [![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)](LICENSE)
@@ -17,7 +17,7 @@
 
 ***Prismo Tauri transforms the [Prismo](https://github.com/diShine-digital-agency/prismo) CLI toolkit by diShine into a cross-platform desktop application built with [Tauri v2](https://tauri.app), React, and TypeScript. It provides a visual interface for running audits, viewing reports, exporting branded documents, and managing client profiles.***
 
-Built by [diShine Digital Agency](https://dishine.it). Read more on the [diShine blog](https://dishine.it/blog/prismo-ai-consulting-toolkit-usb/).
+Built by [diShine Digital Agency](https://dishine.it).
 
 </div>
 
