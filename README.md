@@ -21,11 +21,11 @@ Built by [diShine Digital Agency](https://dishine.it).
   <img src="assets/branding/prismoTauri_01_dashboard_close.webp" alt="Prismo Tauri Dashboard dashboard" width="65%">
 </p>
 
-> 📖 **New here?** Start with the [Complete User Guide](docs/GUIDE.md) — it walks you through everything step by step, no technical knowledge required.
-
 <p align="center">
   <img src="assets/branding/prismoTauri_02_run_audit_close.webp" alt="Run audit" width="65%">
 </p>
+
+> 📖 **New here?** Start with the [Complete User Guide](docs/GUIDE.md) — it walks you through everything step by step, no technical knowledge required.
 
 ---
 
