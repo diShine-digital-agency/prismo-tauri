@@ -1,31 +1,29 @@
+# 🌟 Prismo Tauri: professional desktop GUI for the Prismo AI Consulting Toolkit
+
 <div align="center">
+  
+[![diShine Logo](https://dishine.it/favicon.ico)](https://dishine.it/)
 
-# 🌟 Prismo Tauri
+***Transform. Automate. Shine!***
 
-[![diShine Logo](https://dishine.it/favicon.ico)](https://dishine.it)
-
-**A professional desktop GUI for the Prismo AI Consulting Toolkit.**
-
-[![Website](https://img.shields.io/badge/Website-dishine.it-blue)](https://dishine.it/)
+[![Website](https://img.shields.io/badge/Website-dishine.it-blue)](https://dishine.it/blog/prismo-ai-consulting-toolkit-usb/)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-diShine-blue)](https://linkedin.com/company/100682596)
-[![Location](https://img.shields.io/badge/Location-Milan%2C%20Italy-green)](https://dishine.it)
-[![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)](./LICENSE)
+[![Location](https://img.shields.io/badge/Location-Milan%2C%20Italy-green)]()
+[![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)](LICENSE)
 
-Prismo Tauri transforms the [Prismo](https://github.com/diShine-digital-agency/prismo) CLI toolkit by diShine into a cross-platform desktop application built with [Tauri v2](https://tauri.app), React, and TypeScript. It provides a visual interface for running audits, viewing reports, exporting branded documents, and managing client profiles.
+<p align="center">
+  <img src="assets/branding/prismoTauri_01_dashboard_close.webp" alt="Prismo Tauri Dashboard dashboard" width="85%">
+</p>
 
-Built by [diShine Digital Agency](https://dishine.it).
+***Prismo Tauri transforms the [Prismo](https://github.com/diShine-digital-agency/prismo) CLI toolkit by diShine into a cross-platform desktop application built with [Tauri v2](https://tauri.app), React, and TypeScript. It provides a visual interface for running audits, viewing reports, exporting branded documents, and managing client profiles.***
+
+Built by [diShine Digital Agency](https://dishine.it). Read more on the [diShine blog](https://dishine.it/blog/prismo-ai-consulting-toolkit-usb/).
 
 </div>
 
 <p align="center">
-  <img src="assets/branding/prismoTauri_01_dashboard_close.webp" alt="Prismo Tauri Dashboard dashboard" width="65%">
+  <img src="assets/branding/prismoTauri_02_run_audit_close.webp" alt="Run audit" width="85%">
 </p>
-
-<p align="center">
-  <img src="assets/branding/prismoTauri_02_run_audit_close.webp" alt="Run audit" width="65%">
-</p>
-
-> 📖 **New here?** Start with the [Complete User Guide](docs/GUIDE.md) — it walks you through everything step by step, no technical knowledge required.
 
 ---
 
@@ -252,3 +250,14 @@ Copyright (c) 2026 [diShine Digital Agency](https://dishine.it)
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for version history.
+
+---
+
+## About diShine
+
+[diShine](https://dishine.it) is a creative tech agency based in Milan. We create digital strategies, design process and build tools for clients, help businesses with AI strategy and MarTech architecture, and open-source some things we wish existed.
+
+- Web: [dishine.it](https://dishine.it)
+- GitHub: [github.com/diShine-digital-agency](https://github.com/diShine-digital-agency)
+- Contact: kevin@dishine.it
+
