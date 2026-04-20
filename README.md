@@ -9,7 +9,7 @@
 [![Website](https://img.shields.io/badge/Website-dishine.it-blue)](https://dishine.it/)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-diShine-blue)](https://linkedin.com/company/100682596)
 [![Location](https://img.shields.io/badge/Location-Milan%2C%20Italy-green)]()
-[![License: CC0](https://img.shields.io/badge/License-CC0%201.0-lightgrey)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
 <p align="center">
   <img src="assets/branding/prismoTauri_01_dashboard_close.webp" alt="Prismo Tauri Dashboard dashboard" width="85%">
